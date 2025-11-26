@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Interview – Отчёты</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="recruiterReports">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">+I</div>
+      <div class="logo-text">
+        <div class="logo-title">AI Interview</div>
+        <div class="logo-subtitle">Панель рекрутера</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Навигация</div>
+      <nav class="nav">
+        <a class="nav-link" href="recruiter.html">Интервью</a>
+        <a class="nav-link" href="candidates.html">Кандидаты</a>
+        <a class="nav-link active" href="reports.html">Отчёты</a>
+      </nav>
+    </div>
+
+    <div class="quota">
+      Всего <span id="reportCount">0</span> интервью в localStorage.
+    </div>
+  </aside>
+
+  <main class="main recruiter-main">
+    <header class="main-header">
+      <div>
+        <h1>Отчёты по интервью</h1>
+        <p class="muted">Сводный список интервью с быстрым переходом к отчёту кандидата.</p>
+      </div>
+      <a href="index.html" class="link-small">← На главную</a>
+    </header>
+
+    <section class="card">
+      <h2 class="card-title">Интервью и отчёты</h2>
+      <p class="card-subtitle">Нажмите «Открыть отчёт», чтобы посмотреть результат интервью глазами кандидата.</p>
+
+      <div class="table-wrapper">
+        <table class="table" id="reportsTable">
+          <thead>
+          <tr>
+            <th>Кандидат</th>
+            <th>Роль</th>
+            <th>Уровень</th>
+            <th>Статус</th>
+            <th>Создано</th>
+            <th>Отчёт</th>
+          </tr>
+          </thead>
+          <tbody>
+          <!-- строки подставит JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

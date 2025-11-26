@@ -12,6 +12,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
 </head>
 <body data-page="candidate">
 <header class="topbar">
@@ -105,7 +107,8 @@
             <textarea
               id="codeInput"
               class="code-editor"
-              placeholder="Напиши или вставь сюда код. Для Python и JavaScript код будет реально выполняться."
+              spellcheck="false"
+              placeholder="Напиши или вставь сюда код. Python и JavaScript выполняются реально, C++ через JS-интерпретатор, Java — демо."
             ></textarea>
           </div>
 
@@ -134,8 +137,11 @@
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 <script>
   // Загружаем окружение Python сразу, чтобы потом можно было запускать код
-  let pyodideReadyPromise = loadPyodide();
+  window.pyodideReadyPromise = loadPyodide();
 </script>
+
+<!-- JSCPP для C++ -->
+<script src="https://felixhao28.github.io/JSCPP/dist/JSCPP.es5.min.js"></script>
 
 <script src="app.js"></script>
 </body>

@@ -1,5 +1,3 @@
-// ===== Общие функции =====
-
 const STORAGE_KEY = "ai_interviews_storage";
 const RECRUITER_KEY = "RECRUITER-2025"; // код доступа рекрутера к панели
 
@@ -33,12 +31,43 @@ function formatDate(ts) {
   return d.toLocaleString();
 }
 
+// вспомогательная функция для ссылки на интервью
+function buildCandidateLinkGeneric(interview) {
+  const base = window.location.origin + window.location.pathname.replace(/[^/]+$/, "");
+  const normalizedBase = base.endsWith("/") ? base : base + "/";
+  const langParam = interview.language || "any";
+  return (
+    normalizedBase +
+    "candidate.html?id=" +
+    encodeURIComponent(interview.id) +
+    "&code=" +
+    encodeURIComponent(interview.candidateCode) +
+    "&lang=" +
+    encodeURIComponent(langParam)
+  );
+}
+
+// ссылка на отчёт кандидата
+function buildReportLink(interview) {
+  const base = window.location.origin + window.location.pathname.replace(/[^/]+$/, "");
+  const normalizedBase = base.endsWith("/") ? base : base + "/";
+  return (
+    normalizedBase +
+    "candidate-report.html?id=" +
+    encodeURIComponent(interview.id) +
+    "&code=" +
+    encodeURIComponent(interview.candidateCode)
+  );
+}
+
 // ===== Инициализация страниц =====
 
 document.addEventListener("DOMContentLoaded", () => {
   const page = document.body.dataset.page;
   if (page === "landing") initLanding();
   if (page === "recruiter") initRecruiter();
+  if (page === "recruiterCandidates") initRecruiterCandidates();
+  if (page === "recruiterReports") initRecruiterReports();
   if (page === "candidate") initCandidate();
   if (page === "candidateReport") initCandidateReport();
 });
@@ -54,33 +83,37 @@ function initLanding() {
   const candidateBtn = document.getElementById("candidateLoginBtn");
   const candidateError = document.getElementById("candidateError");
 
-  recruiterBtn.addEventListener("click", () => {
-    const val = recruiterInput.value.trim();
-    if (val === RECRUITER_KEY) {
-      window.location.href = "recruiter.html";
-    } else {
-      recruiterError.textContent = "Неверный код доступа рекрутера.";
-    }
-  });
+  if (recruiterBtn) {
+    recruiterBtn.addEventListener("click", () => {
+      const val = recruiterInput.value.trim();
+      if (val === RECRUITER_KEY) {
+        window.location.href = "recruiter.html";
+      } else {
+        recruiterError.textContent = "Неверный код доступа рекрутера.";
+      }
+    });
+  }
 
-  candidateBtn.addEventListener("click", () => {
-    const code = candidateInput.value.trim();
-    if (!code) {
-      candidateError.textContent = "Введите код кандидата.";
-      return;
-    }
-    const interviews = loadInterviews();
-    const found = interviews.find((i) => i.candidateCode === code);
-    if (!found) {
-      candidateError.textContent = "Интервью с таким кодом не найдено.";
-      return;
-    }
-    const url = `candidate-report.html?id=${encodeURIComponent(found.id)}&code=${encodeURIComponent(code)}`;
-    window.location.href = url;
-  });
+  if (candidateBtn) {
+    candidateBtn.addEventListener("click", () => {
+      const code = candidateInput.value.trim();
+      if (!code) {
+        candidateError.textContent = "Введите код кандидата.";
+        return;
+      }
+      const interviews = loadInterviews();
+      const found = interviews.find((i) => i.candidateCode === code);
+      if (!found) {
+        candidateError.textContent = "Интервью с таким кодом не найдено.";
+        return;
+      }
+      const url = `candidate-report.html?id=${encodeURIComponent(found.id)}&code=${encodeURIComponent(code)}`;
+      window.location.href = url;
+    });
+  }
 }
 
-// ===== Рекрутер (recruiter.html) =====
+// ===== Рекрутер – Интервью (recruiter.html) =====
 
 function initRecruiter() {
   const form = document.getElementById("createInterviewForm");
@@ -94,7 +127,8 @@ function initRecruiter() {
 
   function renderTable() {
     const interviews = loadInterviews();
-    interviewCount.textContent = interviews.length.toString();
+    if (interviewCount) interviewCount.textContent = interviews.length.toString();
+    if (!tableBody) return;
     tableBody.innerHTML = "";
 
     interviews.forEach((interview) => {
@@ -119,14 +153,14 @@ function initRecruiter() {
       tr.appendChild(tdCode);
 
       tr.addEventListener("click", () => {
-        const link = buildCandidateLink(interview);
+        const link = buildCandidateLinkGeneric(interview);
         navigator.clipboard
           .writeText(link)
           .then(() => {
-            copyHint.textContent = "Ссылка скопирована в буфер обмена.";
+            if (copyHint) copyHint.textContent = "Ссылка скопирована в буфер обмена.";
           })
           .catch(() => {
-            copyHint.textContent = "Не удалось скопировать ссылку.";
+            if (copyHint) copyHint.textContent = "Не удалось скопировать ссылку.";
           });
       });
 
@@ -134,72 +168,167 @@ function initRecruiter() {
     });
   }
 
-  function buildCandidateLink(interview) {
-    const base = window.location.origin + window.location.pathname.replace("recruiter.html", "");
-    const normalizedBase = base.endsWith("/") ? base : base + "/";
-    const langParam = interview.language || "any";
-    return (
-      normalizedBase +
-      "candidate.html?id=" +
-      encodeURIComponent(interview.id) +
-      "&code=" +
-      encodeURIComponent(interview.candidateCode) +
-      "&lang=" +
-      encodeURIComponent(langParam)
-    );
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const candidateName = formData.get("candidateName").toString().trim();
+      const role = formData.get("role").toString().trim();
+      const level = formData.get("level").toString();
+      const format = formData.get("format").toString();
+      const notes = formData.get("notes").toString().trim();
+      const language = (formData.get("language") || "any").toString();
+
+      if (!candidateName || !role) return;
+
+      const interviews = loadInterviews();
+      const id = generateId();
+      const candidateCode = generateCandidateCode();
+
+      const interview = {
+        id,
+        candidateName,
+        role,
+        level,
+        format,
+        language,
+        notes,
+        status: "Ожидает",
+        candidateCode,
+        createdAt: Date.now(),
+        finishedAt: null,
+        messages: [],
+      };
+
+      interviews.push(interview);
+      saveInterviews(interviews);
+
+      const link = buildCandidateLinkGeneric(interview);
+      if (generatedBlock) generatedBlock.classList.remove("hidden");
+      if (generatedLink) generatedLink.textContent = link;
+      if (generatedCode) generatedCode.textContent = candidateCode;
+
+      renderTable();
+      form.reset();
+    });
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const candidateName = formData.get("candidateName").toString().trim();
-    const role = formData.get("role").toString().trim();
-    const level = formData.get("level").toString();
-    const format = formData.get("format").toString();
-    const notes = formData.get("notes").toString().trim();
-    const language = (formData.get("language") || "any").toString();
-
-    if (!candidateName || !role) return;
-
-    const interviews = loadInterviews();
-    const id = generateId();
-    const candidateCode = generateCandidateCode();
-
-    const interview = {
-      id,
-      candidateName,
-      role,
-      level,
-      format,
-      language, // язык, выбранный рекрутером (или any)
-      notes,
-      status: "Ожидает",
-      candidateCode,
-      createdAt: Date.now(),
-      finishedAt: null,
-      messages: [],
-    };
-
-    interviews.push(interview);
-    saveInterviews(interviews);
-
-    const link = buildCandidateLink(interview);
-    generatedBlock.classList.remove("hidden");
-    generatedLink.textContent = link;
-    generatedCode.textContent = candidateCode;
-
-    renderTable();
-    form.reset();
-  });
-
-  quotaLink.addEventListener("click", () => {
-    if (confirm("Точно очистить все интервью (localStorage)?")) {
-      saveInterviews([]);
-      renderTable();
-    }
-  });
+  if (quotaLink) {
+    quotaLink.addEventListener("click", () => {
+      if (confirm("Точно очистить все интервью (localStorage)?")) {
+        saveInterviews([]);
+        renderTable();
+      }
+    });
+  }
 
   renderTable();
+}
+
+// ===== Рекрутер – Кандидаты (candidates.html) =====
+
+function initRecruiterCandidates() {
+  const tableBody = document.querySelector("#candidatesTable tbody");
+  const candidateCount = document.getElementById("candidateCount");
+  const copyHint = document.getElementById("candidatesCopyHint");
+
+  const interviews = loadInterviews();
+
+  if (candidateCount) candidateCount.textContent = interviews.length.toString();
+  if (!tableBody) return;
+  tableBody.innerHTML = "";
+
+  interviews.forEach((interview) => {
+    const tr = document.createElement("tr");
+    tr.dataset.id = interview.id;
+
+    const tdName = document.createElement("td");
+    tdName.textContent = interview.candidateName;
+
+    const tdRole = document.createElement("td");
+    tdRole.textContent = interview.role;
+
+    const tdLevel = document.createElement("td");
+    tdLevel.textContent = interview.level;
+
+    const tdLang = document.createElement("td");
+    tdLang.textContent = (interview.language || "any").toUpperCase();
+
+    const tdStatus = document.createElement("td");
+    tdStatus.textContent = interview.status || "Ожидает";
+
+    const tdCode = document.createElement("td");
+    tdCode.textContent = interview.candidateCode;
+
+    tr.appendChild(tdName);
+    tr.appendChild(tdRole);
+    tr.appendChild(tdLevel);
+    tr.appendChild(tdLang);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdCode);
+
+    tr.addEventListener("click", () => {
+      const link = buildCandidateLinkGeneric(interview);
+      navigator.clipboard
+        .writeText(link)
+        .then(() => {
+          if (copyHint) copyHint.textContent = "Ссылка на интервью скопирована в буфер обмена.";
+        })
+        .catch(() => {
+          if (copyHint) copyHint.textContent = "Не удалось скопировать ссылку.";
+        });
+    });
+
+    tableBody.appendChild(tr);
+  });
+}
+
+// ===== Рекрутер – Отчёты (reports.html) =====
+
+function initRecruiterReports() {
+  const tableBody = document.querySelector("#reportsTable tbody");
+  const reportCount = document.getElementById("reportCount");
+
+  const interviews = loadInterviews();
+
+  if (reportCount) reportCount.textContent = interviews.length.toString();
+  if (!tableBody) return;
+  tableBody.innerHTML = "";
+
+  interviews.forEach((interview) => {
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+    tdName.textContent = interview.candidateName;
+
+    const tdRole = document.createElement("td");
+    tdRole.textContent = interview.role;
+
+    const tdLevel = document.createElement("td");
+    tdLevel.textContent = interview.level;
+
+    const tdStatus = document.createElement("td");
+    tdStatus.textContent = interview.status || "Ожидает";
+
+    const tdCreated = document.createElement("td");
+    tdCreated.textContent = interview.createdAt ? formatDate(interview.createdAt) : "—";
+
+    const tdLink = document.createElement("td");
+    const a = document.createElement("a");
+    a.href = buildReportLink(interview);
+    a.textContent = "Открыть отчёт";
+    a.classList.add("link-small");
+    tdLink.appendChild(a);
+
+    tr.appendChild(tdName);
+    tr.appendChild(tdRole);
+    tr.appendChild(tdLevel);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdCreated);
+    tr.appendChild(tdLink);
+
+    tableBody.appendChild(tr);
+  });
 }
 
 // ===== Кандидат (candidate.html) =====
@@ -208,41 +337,34 @@ function initCandidate() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
   const code = params.get("code");
-  const langFromUrl = params.get("lang") || "any"; // язык от рекрутера или 'any'
+  const langFromUrl = params.get("lang") || "any";
 
   const subtitle = document.getElementById("candidateHeaderSubtitle");
   const timerEl = document.getElementById("interviewTimer");
 
-  // экраны
   const setupScreen = document.getElementById("setupScreen");
   const interviewScreen = document.getElementById("interviewScreen");
 
-  // камера
   const cameraPreview = document.getElementById("cameraPreview");
   const liveVideo = document.getElementById("liveVideo");
 
-  // аватар
   const aiAvatarPreview = document.getElementById("aiAvatarPreview");
   let selectedAvatar = "🤖";
 
-  // выбор языка
   const langSelect = document.getElementById("candidateLangSelect");
   const langHint = document.getElementById("langHint");
   const codeLangLabel = document.getElementById("codeLangLabel");
   let currentLang = langFromUrl === "any" ? "python" : langFromUrl;
 
-  // код-редактор
   const codeInput = document.getElementById("codeInput");
   const codeHighlight = document.getElementById("codeHighlight");
   const codeRunBtn = document.getElementById("codeRunBtn");
   const codeOutput = document.getElementById("codeOutput");
 
-  // чат
   const chatWindow = document.getElementById("chatWindow");
   const chatInput = document.getElementById("chatInput");
   const chatSendBtn = document.getElementById("chatSendBtn");
 
-  // кнопка старта
   const startInterviewBtn = document.getElementById("startInterviewBtn");
 
   if (!id || !code) {
@@ -264,7 +386,6 @@ function initCandidate() {
     subtitle.textContent = `Интервью для ${interview.candidateName} • ${interview.role} (${interview.level})`;
   }
 
-  // --- выбор языка (кто решает: рекрутер или кандидат) ---
   if (langSelect) {
     if (langFromUrl === "any") {
       langHint.textContent = "Выбери язык, на котором будешь писать код.";
@@ -286,7 +407,10 @@ function initCandidate() {
     codeHighlight.className = "code-highlight";
     if (currentLang === "python") codeHighlight.classList.add("language-python");
     else if (currentLang === "javascript") codeHighlight.classList.add("language-javascript");
+    else if (currentLang === "cpp") codeHighlight.classList.add("language-cpp");
+    else if (currentLang === "java") codeHighlight.classList.add("language-java");
     else codeHighlight.classList.add("language-plaintext");
+
     if (window.hljs) {
       hljs.highlightElement(codeHighlight);
     }
@@ -297,7 +421,6 @@ function initCandidate() {
 
   updateCodeLangHighlight();
 
-  // ---------- таймер (20 минут) ----------
   let secondsLeft = 20 * 60;
   const timerId = setInterval(() => {
     secondsLeft--;
@@ -315,7 +438,6 @@ function initCandidate() {
     return list.map((it) => (it.id === updated.id ? updated : it));
   }
 
-  // ---------- чат (только текст, без кода) ----------
   function renderMessages() {
     if (!chatWindow) return;
     chatWindow.innerHTML = "";
@@ -386,7 +508,6 @@ function initCandidate() {
     });
   }
 
-  // ---------- синхронизация textarea -> подсвеченный блок ----------
   if (codeInput && codeHighlight) {
     const syncHighlight = () => {
       codeHighlight.textContent = codeInput.value;
@@ -396,25 +517,26 @@ function initCandidate() {
     syncHighlight();
   }
 
-  // ---------- “Запустить код”: только запуск + вывод результата, без чата ----------
   if (codeRunBtn && codeInput && codeOutput) {
     codeRunBtn.addEventListener("click", async () => {
       const codeText = codeInput.value.trim();
       if (!codeText) return;
 
       try {
-        if (currentLang === "javascript") {
-          // простое выполнение JS
+        if (currentLang === "javascript" || currentLang === "js") {
           const result = eval(codeText);
           codeOutput.textContent =
             result !== undefined ? String(result) : "Код JavaScript выполнен.";
-        } else if (currentLang === "python") {
-          // выполняем Python и ловим print()
+        } else if (currentLang === "python" || currentLang === "py") {
+          if (!window.pyodideReadyPromise) {
+            codeOutput.textContent = "Pyodide не загружен. Проверь подключение скрипта.";
+            return;
+          }
+
           codeOutput.textContent = "Выполняем Python-код...";
-          const pyodide = await pyodideReadyPromise;
+          const pyodide = await window.pyodideReadyPromise;
 
           let captured = "";
-          // перехватываем stdout Pyodide
           pyodide.setStdout({
             batched: (s) => {
               captured += s;
@@ -425,22 +547,43 @@ function initCandidate() {
           try {
             result = await pyodide.runPythonAsync(codeText);
           } finally {
-            // возвращаем stdout по умолчанию
             pyodide.setStdout();
           }
 
           if (captured.trim()) {
-            // если что-то напечатали через print()
             codeOutput.textContent = captured;
           } else if (result !== undefined) {
-            // если есть возвращаемое значение
             codeOutput.textContent = String(result);
           } else {
             codeOutput.textContent = "Код Python выполнен.";
           }
+        } else if (currentLang === "cpp" || currentLang === "c++") {
+          if (typeof JSCPP === "undefined") {
+            codeOutput.textContent =
+              "Интерпретатор C++ (JSCPP) не загрузился. Проверь подключение JSCPP.";
+            return;
+          }
+
+          let out = "";
+          try {
+            JSCPP.run(codeText, "", {
+              stdio: {
+                write: (s) => {
+                  out += s;
+                },
+              },
+              maxTimeout: 2000,
+            });
+            codeOutput.textContent = out.trim() || "Код C++ выполнен.";
+          } catch (e) {
+            codeOutput.textContent = "Ошибка при выполнении C++: " + e;
+          }
+        } else if (currentLang === "java") {
+          codeOutput.textContent =
+            "В этом фронтенд-прототипе полноценный запуск Java не реализован. Код подсвечивается и сохраняется, но для реального запуска нужна серверная часть или отдельное JVM-решение.";
         } else {
           codeOutput.textContent =
-            "Реальный запуск сейчас поддерживается только для Python и JavaScript.";
+            "Запуск кода для этого языка в демо пока не реализован.";
         }
       } catch (err) {
         codeOutput.textContent = "Ошибка при выполнении кода: " + err;
@@ -448,8 +591,6 @@ function initCandidate() {
     });
   }
 
-
-  // ---------- выбор аватара ----------
   document.querySelectorAll(".avatar-option").forEach((opt) => {
     opt.addEventListener("click", () => {
       document.querySelectorAll(".avatar-option").forEach((o) => o.classList.remove("active"));
@@ -461,7 +602,6 @@ function initCandidate() {
     });
   });
 
-  // ---------- включаем камеру ----------
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: false })
@@ -474,7 +614,6 @@ function initCandidate() {
       });
   }
 
-  // ---------- кнопка “Начать интервью” ----------
   if (startInterviewBtn && setupScreen && interviewScreen) {
     startInterviewBtn.addEventListener("click", () => {
       if (langFromUrl === "any" && langSelect) {
@@ -521,7 +660,9 @@ function initCandidateReport() {
     return;
   }
 
-  const messagesCount = interview.messages ? interview.messages.filter((m) => m.from === "candidate").length : 0;
+  const messagesCount = interview.messages
+    ? interview.messages.filter((m) => m.from === "candidate").length
+    : 0;
 
   reportContent.innerHTML = `
     <div>
