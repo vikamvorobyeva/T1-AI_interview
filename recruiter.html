@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Interview – Рекрутер</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="recruiter">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">+I</div>
+      <div class="logo-text">
+        <div class="logo-title">AI Interview</div>
+        <div class="logo-subtitle">Панель рекрутера</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Навигация</div>
+      <nav class="nav">
+        <a class="nav-link active">Интервью</a>
+        <a class="nav-link">Кандидаты</a>
+        <a class="nav-link">Отчёты</a>
+      </nav>
+    </div>
+
+    <div class="quota">
+      Осталось <span id="interviewCount">0</span> интервью в браузере (localStorage).
+      <div class="quota-link">Очистить все данные →</div>
+    </div>
+  </aside>
+
+  <main class="main recruiter-main">
+    <header class="main-header">
+      <div>
+        <h1>Интервью кандидатов</h1>
+        <p class="muted">Создавайте AI-интервью и отправляйте персональные ссылки кандидатам.</p>
+      </div>
+      <a href="index.html" class="link-small">← На главную</a>
+    </header>
+
+    <div class="grid">
+      <!-- Список интервью -->
+      <section class="card">
+        <h2 class="card-title">Созданные интервью</h2>
+        <p class="card-subtitle">Нажмите на строку, чтобы скопировать ссылку для кандидата.</p>
+        <div class="table-wrapper">
+          <table class="table" id="interviewTable">
+            <thead>
+            <tr>
+              <th>Кандидат</th>
+              <th>Роль</th>
+              <th>Статус</th>
+              <th>Код кандидата</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- строки подставит JS -->
+            </tbody>
+          </table>
+        </div>
+        <p id="copyHint" class="helper">Клик по строке скопирует ссылку в буфер.</p>
+      </section>
+
+      <!-- Быстрое создание -->
+      <section class="card">
+        <h2 class="card-title">Создать новое интервью</h2>
+        <p class="card-subtitle">
+          Заполните данные — система сгенерирует ссылку и код для кандидата.
+        </p>
+        <form id="createInterviewForm">
+          <label class="field-label">Имя кандидата</label>
+          <input name="candidateName" class="field-input" placeholder="Например, Anna Smith" required />
+
+          <label class="field-label">Роль</label>
+          <input name="role" class="field-input" placeholder="Product Manager" required />
+
+          <div class="field-row">
+            <div class="field-col">
+              <label class="field-label">Уровень</label>
+              <select name="level" class="field-input" required>
+                <option value="Intern">Intern</option>
+                <option value="Junior">Junior</option>
+                <option value="Middle" selected>Middle</option>
+                <option value="Senior">Senior</option>
+              </select>
+
+              <label class="field-label">Язык программирования</label>
+              <select name="language" class="field-input">
+                <option value="any">Кандидат выберет сам</option>
+                <option value="python">Python</option>
+                <option value="javascript">JavaScript</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option>
+              </select>
+            </div>
+
+            <div class="field-col">
+              <label class="field-label">Формат</label>
+              <select name="format" class="field-input">
+                <option>Чат + аватар AI</option>
+                <option>Чат + видео кандидата</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="field-label">Комментарий (опционально)</label>
+          <textarea name="notes" class="field-textarea" placeholder="Что обязательно проверить, какие темы затронуть…"></textarea>
+
+          <button type="submit" class="btn btn-primary full-width">Сгенерировать ссылку</button>
+        </form>
+
+        <div id="generatedBlock" class="generated-block hidden">
+          <div class="generated-title">Ссылка для кандидата</div>
+          <div id="generatedLink" class="generated-link"></div>
+          <div class="generated-title">Код кандидата</div>
+          <div id="generatedCode" class="generated-code"></div>
+          <p class="helper">
+            Отправьте кандидату ссылку и код. По ссылке он пройдёт интервью, по коду — посмотрит свой отчёт.
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

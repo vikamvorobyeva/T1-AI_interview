@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Interview – Интервью</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Подсветка синтаксиса (highlight.js) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+</head>
+<body data-page="candidate">
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mark">+I</div>
+    <div class="logo-text">
+      <div class="logo-title">AI Interview</div>
+      <div id="candidateHeaderSubtitle" class="logo-subtitle">
+        Интервью кандидата
+      </div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div id="interviewTimer" class="timer">20:00</div>
+    <a href="index.html" class="link-small">На главную</a>
+  </div>
+</header>
+
+<main class="main candidate-main">
+  <div class="shell shell-wide">
+
+    <!-- ЭКРАН НАСТРОЙКИ -->
+    <section id="setupScreen" class="card">
+      <h2 class="card-title">Подготовка перед интервью</h2>
+      <p class="card-subtitle">Выбери аватар AI, язык и включи камеру, затем нажми «Начать интервью».</p>
+
+      <div class="setup-grid">
+        <div>
+          <label class="field-label">Аватар AI-собеседника</label>
+          <div class="avatar-select">
+            <span class="avatar-option active" data-avatar="🤖">🤖</span>
+            <span class="avatar-option" data-avatar="🧑‍💻">🧑‍💻</span>
+            <span class="avatar-option" data-avatar="👩‍🏫">👩‍🏫</span>
+            <span class="avatar-option" data-avatar="🧠">🧠</span>
+            <span class="avatar-option" data-avatar="👨‍💼">👨‍💼</span>
+          </div>
+
+          <label class="field-label" style="margin-top: 12px;">Язык программирования</label>
+          <select id="candidateLangSelect" class="field-input">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+          </select>
+          <p id="langHint" class="helper"></p>
+        </div>
+
+        <div>
+          <label class="field-label">Предпросмотр камеры</label>
+          <video id="cameraPreview" autoplay muted playsinline></video>
+        </div>
+      </div>
+
+      <button id="startInterviewBtn" class="btn btn-primary full-width" style="margin-top: 12px;">
+        Начать интервью
+      </button>
+    </section>
+
+    <!-- ЭКРАН ИНТЕРВЬЮ -->
+    <div id="interviewScreen" class="interview-layout hidden">
+
+      <!-- Слева: AI + твоё видео -->
+      <div class="video-block">
+        <div class="video-box">
+          <div class="badge">AI-собеседник</div>
+          <div id="aiAvatarPreview" class="avatar-big">🤖</div>
+        </div>
+
+        <div class="video-box">
+          <div class="badge">Ты</div>
+          <video id="liveVideo" autoplay muted playsinline></video>
+        </div>
+      </div>
+
+      <!-- Справа: код + чат -->
+      <div class="chat-block">
+
+        <!-- “Компилятор” -->
+        <div class="code-panel">
+          <div class="code-header">
+            <span class="code-title">Задача по коду</span>
+            <span id="codeLangLabel" class="helper"></span>
+            <button id="codeRunBtn" class="btn btn-secondary code-run-btn">
+              Запустить код
+            </button>
+          </div>
+
+          <!-- Обёртка: подсветка + textarea -->
+          <div class="code-editor-wrapper">
+            <pre><code id="codeHighlight" class="code-highlight language-python"></code></pre>
+            <textarea
+              id="codeInput"
+              class="code-editor"
+              placeholder="Напиши или вставь сюда код. Для Python и JavaScript код будет реально выполняться."
+            ></textarea>
+          </div>
+
+          <div id="codeOutput" class="code-output">
+            Результат выполнения кода появится здесь.
+          </div>
+        </div>
+
+        <!-- Чат -->
+        <div class="chat-panel">
+          <div class="chat-title">Чат с AI</div>
+          <div id="chatWindow" class="chat-window"></div>
+
+          <div class="chat-input-row">
+            <input id="chatInput" class="field-input" placeholder="Напиши ответ или комментарий..." />
+            <button id="chatSendBtn" class="btn btn-primary">Отправить</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Pyodide для Python -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script>
+  // Загружаем окружение Python сразу, чтобы потом можно было запускать код
+  let pyodideReadyPromise = loadPyodide();
+</script>
+
+<script src="app.js"></script>
+</body>
+</html>

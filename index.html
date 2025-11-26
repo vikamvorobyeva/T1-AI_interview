@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Interview – Главная</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="landing">
+<div class="page">
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-mark">+I</div>
+      <div class="logo-text">
+        <div class="logo-title">AI Interview</div>
+        <div class="logo-subtitle">Интервью с искусственным интеллектом</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="shell shell-wide">
+      <div class="landing-grid">
+        <!-- Блок рекрутера -->
+        <section class="card">
+          <h1 class="card-title">Вход для рекрутеров</h1>
+          <p class="card-subtitle">
+            Введите код доступа, чтобы попасть в панель рекрутера и создавать AI-интервью.
+          </p>
+          <label class="field-label">Код доступа рекрутера</label>
+          <input id="recruiterKeyInput" class="field-input" placeholder="Например, RECRUITER-2025" />
+          <button id="recruiterLoginBtn" class="btn btn-primary">Войти как рекрутер</button>
+          <p class="helper">
+            Для теста используется код: <b>RECRUITER-2025</b> (можно поменять в app.js).
+          </p>
+          <p id="recruiterError" class="error-text"></p>
+        </section>
+
+        <!-- Блок кандидата -->
+        <section class="card">
+          <h2 class="card-title">Вход для кандидатов</h2>
+          <p class="card-subtitle">
+            Если вы уже прошли интервью, введите свой персональный код, чтобы посмотреть отчёт.
+          </p>
+          <label class="field-label">Код кандидата</label>
+          <input id="candidateCodeInput" class="field-input" placeholder="Например, CAND-123456" />
+          <button id="candidateLoginBtn" class="btn btn-secondary">Посмотреть мой отчёт</button>
+          <p class="helper">
+            Код кандидата создаётся автоматически, когда рекрутер генерирует для вас интервью.
+          </p>
+          <p id="candidateError" class="error-text"></p>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
